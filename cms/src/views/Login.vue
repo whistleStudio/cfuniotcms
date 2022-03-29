@@ -65,8 +65,8 @@
         .then(res=>res.json()
         .then(data=>{
           if(!data.err) {
-          const token = data.tkid
-          sessionStorage.setItem("token", token)
+          sessionStorage.setItem("role", data.role)
+          sessionStorage.setItem("token", data.tkid)
           this.$router.push("/admin")
           } else {
             sessionStorage.removeItem("token")

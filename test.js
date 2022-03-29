@@ -1,14 +1,5 @@
-async function a () {
-  throw "sad"
+let a
+let b = null
+if (b&&b.c) {
+  console.log("ok")
 }
-
-// try {
-// ;(async ()=> {
-//   await a()
-// })()
-// } catch (e) {console.log('xxx');}
-;(async ()=>{
-  try {
-    await a()
-  } catch(e){console.log("xxx");}
-})()

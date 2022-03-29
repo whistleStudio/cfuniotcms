@@ -15,7 +15,17 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   let token = sessionStorage.getItem("token")
-  if (token || to.path === "/login") {
+  let role = sessionStorage.getItem("role")
+  if (to.path === "/login") {
+    next()
+  } else if (token) {
+    if (role == 2) {
+      if (to.path === "/admin/school") next()
+      else {next("/admin/school"); alert("当前用户组不支持该操作")}
+    } else {
+      if (to.path !== "/admin/school") next()
+      else {next("/admin/user"); alert("当前用户组不支持该操作")}
+    }
     next()
   } else {
     next("/login")

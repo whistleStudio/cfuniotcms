@@ -1,5 +1,5 @@
 const express = require("express")
-// require('./public/js/db/connect')
+require('./core/db/connect')
 const app = express()
 const PORT = 8086
 const path = require('path')
