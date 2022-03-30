@@ -16,6 +16,9 @@ ul {
 a {
   text-decoration: none;
 }
+i {
+  font-style: normal;
+}
 :root {
   --rMainColor: rgb(0, 161, 233);
   --rMainColorA: rgb(0, 161, 233, 0.7);

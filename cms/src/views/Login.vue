@@ -67,6 +67,7 @@
           if(!data.err) {
           sessionStorage.setItem("role", data.role)
           sessionStorage.setItem("token", data.tkid)
+          sessionStorage.setItem("username", data.username)
           this.$router.push("/admin")
           } else {
             sessionStorage.removeItem("token")

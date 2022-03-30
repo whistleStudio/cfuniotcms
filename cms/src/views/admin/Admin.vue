@@ -8,7 +8,7 @@
       </div>
       <div>
         <span>你好，</span>
-        <span id="username">xxxx </span>
+        <span id="username">{{username}} </span>
         <span id="logout"> 退出登录</span>
       </div>
     </div>
@@ -32,6 +32,7 @@
   export default {
     data () { 
       return {
+        username: "",
         menuList: [
           {id:"0", v: "管理员", icf: "icon-guanliyuan", name: "user"},
           {id:"1", v: "激活码管理", icf: "icon-yuechi", name: "code"},
@@ -49,11 +50,12 @@
       }
     },
     created () {
-      let role = sessionStorage.getItem("role")
-      console.log(role)
+      let role = sessionStorage.getItem("role"), username = sessionStorage.getItem("username")
+      // console.log(role)
+      this.username = username
       if (role==2) this.menuList = this.menuList.slice(3,4)
       else this.menuList = this.menuList.slice(0,3)
-      console.log(this.menuList)
+      // console.log(this.menuList)
     }
   }
 </script>
@@ -121,7 +123,11 @@
   #main>div:first-of-type {
     width: 100%;
     height: 100%;
-    background-color: red;
+    border: 1px solid gainsboro;
+    border-radius: 5px;
+    /* background-color: red; */
+    box-sizing: border-box;
+    padding: 1rem;
   }
   #logout {
     cursor: pointer;
