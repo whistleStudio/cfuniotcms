@@ -1,5 +1,4 @@
-let a
-let b = null
-if (b&&b.c) {
-  console.log("ok")
-}
+let s = "whistle"
+let str = `^whistle[0-9]+`
+let reg = RegExp(str)
+console.log(reg.test(s));

@@ -10,7 +10,7 @@ const {verToken} = require("./core/validate/tokenVerify");
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 // 解析token获取用户信息
-app.use(['/api/admin'], function(req, res, next) {
+app.use(['/api/user'], function(req, res, next) {
 	var token = req.headers['authorization']||'Cfun '+req.cookies.token
 	if(token == undefined){
 		return next();
@@ -28,9 +28,11 @@ app.use(['/api/admin'], function(req, res, next) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const logApi = require("./core/api/logApi.js")
+const logApi = require("./core/api/logApi")
+const userApi = require("./core/api/userApi")
 
 app.use("/api/log", logApi)
+app.use("/api/user", userApi)
 
 
 
