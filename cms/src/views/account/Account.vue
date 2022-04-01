@@ -20,7 +20,9 @@
     </div>
     <div id="content">
       <div id="show"></div>
-      <div id="navigator"></div>
+      <div id="navigator">
+        <page-navigator />
+      </div>
     </div>
     <!-- genModal -->
     <div class="modal fade" id="genModal" tabindex="-1" aria-labelledby="genModalLabel" aria-hidden="true">
@@ -72,6 +74,8 @@
 </template>
 
 <script>
+const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+
 export default {
   data () {
     return {
@@ -93,6 +97,9 @@ export default {
     genInfoOk: function () {
       return this.genModalInfo[0].ok==1&&this.genModalInfo[1].ok==1&&this.genModalInfo[2].ok==1
     }
+  },
+  components: {
+    'page-navigator': PageNavigator,
   },
   methods: {
     /* batch gen btn reset */
@@ -156,7 +163,8 @@ export default {
     },
     genCheckClick () {
       let pmail = this.genModalInfo[0].v, num = this.genModalInfo[1].v
-      let school = this.genModalInfo[3].v ? this.genModalInfo[2].v : "创趣学院"
+      let name = this.genModalInfo[2].v
+      let school = this.genModalInfo[3].v ? this.genModalInfo[3].v : "创趣学院"
       this.$refs.genCheckCloseBtn.click()
       fetch ("/api/user/batchGen", {
         method: "POST",
@@ -164,7 +172,7 @@ export default {
           "Content-Type": "application/json;charset=utf-8"
         },
         body: JSON.stringify({
-          pmail, num, school
+          pmail, num, name, school
         })
       })
       .then(res => res.json()
@@ -180,52 +188,4 @@ export default {
 }   
 </script>
 
-<style scoped>
-  input::placeholder {
-    color: rgb(200, 200, 200);
-  }
-  #account {
-    height: 100%;
-    box-sizing: border-box;
-  }
-  #search {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .search-box {
-    width: 21%;
-    height: 80px;
-    margin-bottom: 0 !important;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .search-box input {
-    height: 40px;
-  }
-  .search-btn {
-    width: 10%;
-    height: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .search-btn>button {
-    width: 47%;
-    height: 40px;
-  }
-  #batch>button {
-    margin: 1.2rem;
-    height: 40px;
-    margin-left: 0;
-  }
-  #content {
-    width: 100%;
-    height: calc(100% - 90px - 4.4rem);
-    background-color: gainsboro;
-  }
-  #genModal .modal-body i {
-    color: red;
-  }
-</style>
+<style src="views/account/account.css" scoped></style>

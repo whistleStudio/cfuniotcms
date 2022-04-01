@@ -1,4 +1,9 @@
-let s = "whistle"
-let str = `^whistle[0-9]+`
-let reg = RegExp(str)
-console.log(reg.test(s));
+try {
+  let i = 0
+  while (1) {
+    i++
+    if (i>10) throw "gg"
+    console.log(i)
+  }
+  throw "gl"
+} catch(e){console.log(e)}

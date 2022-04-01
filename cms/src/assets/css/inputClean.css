@@ -1,0 +1,6 @@
+input {
+  outline: none;
+}
+input::placeholder {
+  color: rgb(200, 200, 200);
+}

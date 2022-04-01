@@ -1,6 +1,7 @@
 const express = require("express")
 const rt = express.Router()
 const User = require("../db/model/User")
+const Device = require("../db/model/Device")
 var hash = require('object-hash')
 
 rt.get("/checkName", (req, res) => {
@@ -23,7 +24,7 @@ rt.get("/checkName", (req, res) => {
 })
 
 rt.post("/batchGen", (req, res) => {
-  let {pmail, num, school} = req.body
+  let {pmail, num, name, school} = req.body
   ;(async ()=>{
     try {
       let timeStamp = new Date().getTime()
@@ -35,17 +36,19 @@ rt.post("/batchGen", (req, res) => {
         while (!createOK) {
           mail = hash(val).slice(0,11) + "@cfun.com"
           let doc = await User.findOne({role: 0, mail})
+          // 查重合格，创建；否则重新生成
           if (!doc) {
-            createOK=1
+            createOK = 1
             console.log("create success")
+            await User.create({name: name+i, role: 0, pwd: "12345678", mail, pmail, school})
+            await Device.create({user:mail, name:"创趣小屋", did:1})
           } else {
             safeCount ++
             timeStamp = new Date().getTime()
             val = timeStamp+pmail
-          }
-          if (safeCount>10) throw "loop error"
+            if (safeCount>10) throw "gen error"
+          }     
         }
-
       }
     } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
   })()

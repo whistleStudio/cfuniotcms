@@ -25,3 +25,11 @@ userApi:
 /api/user/batchGen - 批量生成主要，hash邮箱,生成过程查询role:0字段文档邮箱是否重复；还差数据库实质添加操作
 Account.vue:
 批量生成Modal相关, 必填信息父级邮箱,数量,用户名前缀, 选填学校(默认创趣学院)
+### [202204010000]
+! Fools' Day !
+userApi:
+/api/user/batchGen - 数据库添加完成
+Account.vue:
+样式微调
+PageNavigator.vue:
+创建，跳转逻辑梳理，页面搭建中...
