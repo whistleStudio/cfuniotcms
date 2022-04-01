@@ -3,11 +3,11 @@
 <template>
   <div id="pageNavigator">
     <div>
-      <div id="totalItem">共<span>x</span>条</div>
+      <div id="totalItem">共<span>{{totalItemsL}}</span>条</div>
       <ul id="navUl">
         <li class="navLi">首页</li>
         <li class="navLi">&lt;上一页</li>
-        <li class="navLi boxLi">x</li>
+        <li class="navLi boxLi" v-for="(v, i) in Array(pagesL)" :key="i">{{i+1}}</li>
         <li class="navLi">下一页&gt;</li>
         <li class="navLi">尾页</li>
       </ul>
@@ -20,9 +20,16 @@
   export default {
     data () {
       return {
+        actPageIdx: 0,
+        totalItemsL: 0
       };
     },
     components: {},
+    computed: {
+      pagesL: function () {
+        return Math.ceil(this.totalItemsL/20)
+      }
+    }
   }
 </script>
 
