@@ -33,3 +33,5 @@ Account.vue:
 样式微调
 PageNavigator.vue:
 创建，跳转逻辑梳理，页面搭建中...
+### [202204021656] 
+pageNavigator逻辑书写，有点绕
