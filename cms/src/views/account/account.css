@@ -48,7 +48,8 @@ input::placeholder {
 #show {
   width: 100%;
   height: calc(100% - 70px);
-  background-color: orange;
+  /* background-color: orange; */
+  overflow-y: auto;
 }
 #navigator {
   width: 100%;

@@ -1,9 +1,3 @@
-var b = 2
-function a () {
-  console.log(b)
-}
-
-{
-  var b = 3
-  a ()
-}
+let a = [1, 2, 3]
+let b =[...a, 4]
+console.log([].slice(0,20))

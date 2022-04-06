@@ -35,3 +35,9 @@ PageNavigator.vue:
 创建，跳转逻辑梳理，页面搭建中...
 ### [202204021656] 
 pageNavigator逻辑书写，有点绕
+### [202204061656]
+pageNavigator逻辑优化
+userApi:
+/api/user/getPageContent - 获取页面显示信息，filter {$and:[{},{},{$or:[]}]}
+model User - 增加了一些字段初始值，方便查询，虽然也做了防空的处理
+Account.vue - getPageContent方法

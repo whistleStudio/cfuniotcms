@@ -9,8 +9,8 @@
         <li :class="{navLiAct: actPageIdx==i, navLiHover: hovPageIdx==i&&hovPageIdx!=actPageIdx}"
         @mouseenter="hovPageIdx=i" @mouseleave="hovPageIdx=0" @click="navLiClick(i)"
         class="navLi boxLi" v-for="(v, i) in Array(navPagesL)" :key="i">{{page_1+i}}</li>
-        <li v-if="actPageIdx<4" class="navLi navLiChange">下一页&gt;</li>
-        <li v-if="actPageIdx<4" class="navLi navLiChange">尾页</li>
+        <li v-if="actPageIdx<pageRightLimit" class="navLi navLiChange">下一页&gt;</li>
+        <li v-if="actPageIdx<pageRightLimit" class="navLi navLiChange">尾页</li>
       </ul>
       <div id="toPage">到<input :disabled="pagesL<=1" ref="toPageIp" type="text">页</div>
     </div>
@@ -23,11 +23,13 @@
       return {
         hovPageIdx: -1,
         actPageIdx: 0,
-        totalItemsL: 180,
+        // totalItemsL: 0,
         page_1: 1
       };
     },
-    components: {},
+    props: {
+      totalItemsL: {type: Number, default: 0}
+    },
     computed: {
       pagesL: function () {
         return Math.ceil(this.totalItemsL/20)
@@ -37,22 +39,36 @@
          return 5
         else return this.pagesL
       },
+      pageRightLimit: function () {
+        if (this.pagesL>5) return 4
+        else return this.pagesL-1
+      }
     },
     methods: {
       navLiClick (i) {
-        this.page_1 = this.page_1+i-2
-        if (this.page_1<1) {
-          this.actPageIdx = 2-(1 - this.page_1)
-          this.page_1 = 1
-        } else if (this.page_1 > this.pagesL-4) {
-          this.actPageIdx = 2+(this.page_1+4-this.pagesL)
-          this.page_1 = this.pagesL - 4
-        } else this.actPageIdx = 2
+        if (this.pagesL>5) {
+          this.page_1 = this.page_1+i-2
+          if (this.page_1<1) {
+            this.actPageIdx = 2-(1 - this.page_1)
+            this.page_1 = 1
+          } else if (this.page_1 > this.pagesL-4) {
+            this.actPageIdx = 2+(this.page_1+4-this.pagesL)
+            this.page_1 = this.pagesL - 4
+          } else this.actPageIdx = 2
+        } else {
+          this.actPageIdx = i
+        }
+        this.$emit("pageChange", this.page_1+this.actPageIdx)
       },
       changeIdx (p) {
         this.page_1 = p - 2
-        
-      }
+      },
+    },
+    watch: {
+
+    },
+    created () {
+      // console.log(this.totalItemsL)
     }
   }
 </script>

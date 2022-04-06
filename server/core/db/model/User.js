@@ -15,8 +15,8 @@ const userSchema = new mongoose.Schema({
   score: Number,
   code: {type: String, default: genCode()},
   avatar: {type: Number, default: 0},
-  school: String,
-  pmail: String
+  school: {type: String, default: ""},
+  pmail: {type: String, default: ""}
 })
 
 function genCode () {

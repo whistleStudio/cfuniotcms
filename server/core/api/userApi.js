@@ -4,6 +4,7 @@ const User = require("../db/model/User")
 const Device = require("../db/model/Device")
 var hash = require('object-hash')
 
+/* 批量生成时校验用户名前缀 */
 rt.get("/checkName", (req, res) => {
   let {name} = req.query
   ;(async ()=>{
@@ -23,6 +24,7 @@ rt.get("/checkName", (req, res) => {
   })()
 })
 
+/* 批量生成 */
 rt.post("/batchGen", (req, res) => {
   let {pmail, num, name, school} = req.body
   ;(async ()=>{
@@ -39,7 +41,6 @@ rt.post("/batchGen", (req, res) => {
           // 查重合格，创建；否则重新生成
           if (!doc) {
             createOK = 1
-            console.log("create success")
             await User.create({name: name+i, role: 0, pwd: "12345678", mail, pmail, school})
             await Device.create({user:mail, name:"创趣小屋", did:1})
           } else {
@@ -50,10 +51,43 @@ rt.post("/batchGen", (req, res) => {
           }     
         }
       }
+      console.log(num, "create success")
     } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
   })()
   console.log(req.body)
   res.json({err:0})
 })
+
+/* 获取数据列表总长 */
+rt.post("/getPageContent", (req, res) => {
+  let keys = ["name", "authority", "school"], f1 = [{name: /.+/}], f2 = [{mail: /.+/}]
+  let flag = 1
+  // 防止某个字段没有
+  keys.forEach(e => {
+    if (req.body[e]) {
+      if (flag) {f1=[]; flag=0}
+      f1.push({[e]: RegExp(req.body[e])})
+    }
+  })
+  let {mail, page} = req.body
+  // mail匹配mail或pmail字段
+  if (mail) f2 = [{mail: RegExp(mail)}, {pmail: RegExp(mail)}]
+  let filter = {
+    $and: [
+      ...f1,
+      {$or: f2}
+    ]
+  }
+  ;(async ()=>{
+    try {
+      let docs = await User.find(filter, "name role mail pmail authority school")
+      let dataSlice = docs.slice((page-1)*20, page*20)
+      res.json({err:0, totalL:docs.length, dataSlice})
+    } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
+  })()
+  // res.json({err:0})
+})
+
+
 
 module.exports = rt

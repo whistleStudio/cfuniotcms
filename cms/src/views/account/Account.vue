@@ -5,7 +5,7 @@
       <div v-for="(v, i) in keyword" :key="i" 
       class="mb-3 search-box">
       <label for="formGroupExampleInput" class="form-label">{{v.k}}</label>
-      <input :placeholder="'请输入'+v.k" 
+      <input :placeholder="'请输入'+v.k" v-model="v.v"
       type="text" class="form-control" id="formGroupExampleInput">
       </div> 
       <div class="search-btn">
@@ -19,9 +19,34 @@
       <button class="btn btn-outline-success">批量导出账号</button>
     </div>
     <div id="content">
-      <div id="show"></div>
+      <div id="show">
+        <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+        <th scope="col">#</th>
+        <th scope="col">用户名</th>
+        <th scope="col">用户类型</th>
+        <th scope="col">用户邮箱</th>
+        <th scope="col">父级邮箱</th>
+        <th scope="col">等级</th>
+        <th scope="col">学校</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(v, i) in dataList" :key="i">
+        <th scope="row">{{i+1}}</th>
+        <td>{{v.name}}</td>
+        <td>{{roleMap[v.role]}}</td>
+        <td>{{v.mail}}</td>
+        <td>{{v.pmail}}</td>
+        <td>{{v.authority}}</td>
+        <td>{{v.school}}</td>
+        </tr>
+        </tbody>
+        </table>        
+      </div>
       <div id="navigator">
-        <page-navigator />
+        <page-navigator :totalItemsL="totalL" @pageChange="getPageContent" />
       </div>
     </div>
     <!-- genModal -->
@@ -75,6 +100,7 @@
 
 <script>
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+import {roleMap} from "./dataMap.json"
 
 export default {
   data () {
@@ -90,7 +116,11 @@ export default {
         {k: "数量", v: "", ph: "1-100", hint: "数字1-100", ok:-1},
         {k: "用户名前缀", v: "", ph: "6-14个字符, 可使用数字、字母、下划线", hint: "用户名不合法", ok:-1},
         {k: "学校", v: "", ph: "默认创趣学院", ok:-1}
-      ]
+      ],
+      dataList: [],
+      roleMap,
+      totalL: 0,
+      actPage: 0
     }
   },
   computed: {
@@ -182,9 +212,42 @@ export default {
           alert(data.msg)
         }
       }))
+    },
+    /* 获得符合查询条件的列表总长 */
+    getPageContent (page=1) {
+      fetch("/api/user/getPageContent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify({
+          page,
+          name: this.keyword[0].v,
+          mail: this.keyword[1].v,
+          authority: this.keyword[2].v,
+          school: this.keyword[3].v
+        })
+      })
+      .then(res => res.json()
+      .then(data => {
+        if (!data.err) {
+          this.dataList = data.dataSlice
+          this.totalL = data.totalL
+          // console.log(this.totalL, "---", this.dataList)
+        } else alert(data.msg)
+      }))
+    },
+    /* 更新页面展示 */
+    pageChange (e) {
+      console.log(e)
     }
+  },
+  created () {
+    // this.getPageContent()
+  },
+  mounted () {
+    this.getPageContent()
   }
-
 }   
 </script>
 
