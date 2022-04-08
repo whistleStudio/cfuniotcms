@@ -41,3 +41,10 @@ userApi:
 /api/user/getPageContent - 获取页面显示信息，filter {$and:[{},{},{$or:[]}]}
 model User - 增加了一些字段初始值，方便查询，虽然也做了防空的处理
 Account.vue - getPageContent方法
+### [202204081725]
+PageNavigator：
+首尾左右navLiChangeClick，指定页面跳转toPageIpFocus, 
+属性resetState用于监控父级页面是否重置
+Account：
+优化getPageContent 增加参数mode用于决定是否忽视关键词
+searchContent 参数reset决定重置或检索功能

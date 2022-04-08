@@ -9,8 +9,8 @@
       type="text" class="form-control" id="formGroupExampleInput">
       </div> 
       <div class="search-btn">
-        <button class="btn btn-primary">重置</button>
-        <button class="btn btn-primary">查询</button>
+        <button @click="searchContent({reset:1})" class="btn btn-primary">重置</button>
+        <button @click="searchContent" class="btn btn-primary">查询</button>
       </div>     
     </div>
     <div id="batch">
@@ -34,7 +34,7 @@
         </thead>
         <tbody>
         <tr v-for="(v, i) in dataList" :key="i">
-        <th scope="row">{{i+1}}</th>
+        <th scope="row">{{actPage*20+i+1}}</th>
         <td>{{v.name}}</td>
         <td>{{roleMap[v.role]}}</td>
         <td>{{v.mail}}</td>
@@ -46,7 +46,7 @@
         </table>        
       </div>
       <div id="navigator">
-        <page-navigator :totalItemsL="totalL" @pageChange="getPageContent" />
+        <page-navigator :totalItemsL="totalL" :resetState="resetSta" @pageChange="getPageContent" />
       </div>
     </div>
     <!-- genModal -->
@@ -120,7 +120,8 @@ export default {
       dataList: [],
       roleMap,
       totalL: 0,
-      actPage: 0
+      actPage: 0,
+      resetSta: 0,
     }
   },
   computed: {
@@ -213,8 +214,8 @@ export default {
         }
       }))
     },
-    /* 获得符合查询条件的列表总长 */
-    getPageContent (page=1) {
+    /* 更新页面内容 */
+    getPageContent (page=1, mode=0) {
       fetch("/api/user/getPageContent", {
         method: "POST",
         headers: {
@@ -222,25 +223,31 @@ export default {
         },
         body: JSON.stringify({
           page,
-          name: this.keyword[0].v,
-          mail: this.keyword[1].v,
-          authority: this.keyword[2].v,
-          school: this.keyword[3].v
+          name: mode ? this.keyword[0].v:"",
+          mail: mode ? this.keyword[1].v:"",
+          authority: mode ? this.keyword[2].v:"",
+          school: mode ? this.keyword[3].v:""
         })
       })
       .then(res => res.json()
       .then(data => {
         if (!data.err) {
+          this.actPage = page-1
           this.dataList = data.dataSlice
           this.totalL = data.totalL
           // console.log(this.totalL, "---", this.dataList)
         } else alert(data.msg)
       }))
     },
-    /* 更新页面展示 */
-    pageChange (e) {
-      console.log(e)
-    }
+    /* 页面搜索0与重置1 */
+    searchContent ({reset=0}) {
+      this.resetSta = 1
+      if (reset) {this.keyword.forEach(e => e.v="")}
+      this.getPageContent(1, 1)
+      // 立即执行，watch监控不到
+      setTimeout(()=>{this.resetSta=0}, 50)
+    },
+
   },
   created () {
     // this.getPageContent()
