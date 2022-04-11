@@ -16,7 +16,10 @@
     <div id="batch">
       <button @click="batchGenClick" 
       class="btn btn-success"  data-bs-toggle="modal" data-bs-target="#genModal">批量添加账号</button>
-      <button class="btn btn-outline-success">批量导出账号</button>
+      <button @click="getPageContent(0, 1)"
+      class="btn btn-outline-success">批量导出账号</button>
+      <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
+      ><span></span></a>
     </div>
     <div id="content">
       <div id="show">
@@ -101,6 +104,7 @@
 <script>
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
 import {roleMap} from "./dataMap.json"
+import genWorkbook from "utils/genWorkbook"
 
 export default {
   data () {
@@ -118,10 +122,10 @@ export default {
         {k: "学校", v: "", ph: "默认创趣学院", ok:-1}
       ],
       dataList: [],
+      totalData: [],
       roleMap,
-      totalL: 0,
-      actPage: 0,
-      resetSta: 0,
+      totalL: 0, actPage: 0, resetSta: 0,
+      excelInfo: {link: "", name: ""}
     }
   },
   computed: {
@@ -232,12 +236,32 @@ export default {
       .then(res => res.json()
       .then(data => {
         if (!data.err) {
-          this.actPage = page-1
-          this.dataList = data.dataSlice
-          this.totalL = data.totalL
+          if (page) {
+            this.actPage = page-1
+            this.dataList = data.dataSlice
+            this.totalL = data.totalL
+          }
+          else {
+            let {totalData} = data
+            if (totalData.length) {
+              this.expWorkbook(totalData)      
+            } else alert("当前关键词无数据可导出") 
+          }
           // console.log(this.totalL, "---", this.dataList)
         } else alert(data.msg)
       }))
+    },
+    /* 表格导出至本地 */
+    expWorkbook (arr) {
+      ;(async ()=> {
+        let dateStamp = new Date().getTime()
+        let dataName = "账号信息_" + dateStamp
+        let workbook = genWorkbook(arr, dataName)
+        const buf = await workbook.xlsx.writeBuffer()
+        this.excelInfo.link = URL.createObjectURL(new Blob([buf.buffer]))
+        this.excelInfo.name = `${dataName}.xlsx`
+        setTimeout(()=>{this.$refs.excelA.click()}, 100)
+      })()
     },
     /* 页面搜索0与重置1 */
     searchContent ({reset=0}) {

@@ -48,3 +48,13 @@ PageNavigator：
 Account：
 优化getPageContent 增加参数mode用于决定是否忽视关键词
 searchContent 参数reset决定重置或检索功能
+### [2022040111728]
+utils-genWorkbook 生成表格
+Account:
+优化getPageContent 实现批量导出功能，导出表格会结合页面的关键词
+School:
+页面基本布局
+路由首位进行调整
+Admin:
+mounted默认激活菜单栏第一项
+userApi-getMyStudents 用于获得某个用户的学生

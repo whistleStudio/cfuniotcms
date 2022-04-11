@@ -9,7 +9,7 @@
       <div>
         <span>你好，</span>
         <span id="username">{{username}} </span>
-        <span id="logout"> 退出登录</span>
+        <span @click="logoutClick" id="logout"> 退出登录</span>
       </div>
     </div>
     <div id="menu">
@@ -47,6 +47,9 @@
       menuLiClick (i, pth) {
         this.actMenuIdx = i
         this.$router.push(`/admin/${pth}`)
+      },
+      logoutClick () {
+        this.$router.push("/login")
       }
     },
     created () {
@@ -56,6 +59,9 @@
       if (role==2) this.menuList = this.menuList.slice(3,4)
       else this.menuList = this.menuList.slice(0,3)
       // console.log(this.menuList)
+    },
+    mounted () {
+      this.menuLiClick(0, this.menuList[0].name)
     }
   }
 </script>

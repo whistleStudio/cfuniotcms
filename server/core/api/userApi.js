@@ -80,14 +80,32 @@ rt.post("/getPageContent", (req, res) => {
   }
   ;(async ()=>{
     try {
-      let docs = await User.find(filter, "name role mail pmail authority school")
-      let dataSlice = docs.slice((page-1)*20, page*20)
-      res.json({err:0, totalL:docs.length, dataSlice})
+      if (page) {
+        let docs = await User.find(filter, "name role mail pmail authority school")
+        let dataSlice = docs.slice((page-1)*20, page*20)
+        res.json({err:0, totalL:docs.length, dataSlice})
+      } else {
+        let docs = await User.find(filter, "name role mail authority")
+        res.json({err:0, totalData: docs})
+      }
     } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
   })()
   // res.json({err:0})
 })
 
+/* 获取某个老师的学生 */
+rt.get("/getMyStudents", (req, res) => {
+  let {name} = req.query
+  ;(async ()=>{
+    try {
+      let doc = await User.findOne({name})
+      if (doc) {
+        let q = await User.find({pmail: doc.mail}, "name mail authority pwd school")
+        res.json({err:0, dataList: q})
+      } else res.json({err:4, msg:"信息更改，请重新登录"})
+    } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
+  })()
+})
 
 
 module.exports = rt
