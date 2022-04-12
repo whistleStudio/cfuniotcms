@@ -29,13 +29,21 @@ rt.post("/batchGen", (req, res) => {
   let {pmail, num, name, school} = req.body
   ;(async ()=>{
     try {
+      // pmail是否为已存在账号，是-改变role; 否-创建
+      let teacher = await User.findOneAndUpdate({mail: pmail}, {role: 2})
+      if (!teacher) {
+        await User.create({name: name+"0", role: 2, pwd: "12345678", mail: pmail, school})
+        await Device.create({user: pmail, name:"创趣小屋", did:1})
+      }
+      // 批量生成
       let timeStamp = new Date().getTime()
       let val = timeStamp+pmail
       let mail
-      for (let i=0; i<num; i++) {
+      for (let i=1; i<=num; i++) {
         let createOK = 0, safeCount = 0
         val += i
         while (!createOK) {
+          // 截取hash一部分可能重复
           mail = hash(val).slice(0,11) + "@cfun.com"
           let doc = await User.findOne({role: 0, mail})
           // 查重合格，创建；否则重新生成
@@ -52,10 +60,9 @@ rt.post("/batchGen", (req, res) => {
         }
       }
       console.log(num, "create success")
+      res.json({err:0, msg:"批量添加账号成功"})
     } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
   })()
-  console.log(req.body)
-  res.json({err:0})
 })
 
 /* 获取数据列表总长 */
@@ -95,17 +102,39 @@ rt.post("/getPageContent", (req, res) => {
 
 /* 获取某个老师的学生 */
 rt.get("/getMyStudents", (req, res) => {
-  let {name} = req.query
+  let {name, page} = req.query
   ;(async ()=>{
     try {
       let doc = await User.findOne({name})
       if (doc) {
         let q = await User.find({pmail: doc.mail}, "name mail authority pwd school")
-        res.json({err:0, dataList: q})
+        let totalL = q.length
+        let dataList = q.slice((page-1)*20, page*20)
+        res.json({err:0, dataList, totalL})
       } else res.json({err:4, msg:"信息更改，请重新登录"})
     } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
   })()
 })
 
+/* 编辑一个账号 */
+rt.post("/editOneAccount", (req, res) => {
+  let {mail, pwd, school} = req.body
+  ;(async () => {
+    try {
+      let q = await User.findOneAndUpdate({mail}, {pwd, school})
+      if (q) res.json({err: 0, msg: "修改成功"})
+      else res.json({err:0, msg:"参数错误, 页面刷新"})
+    } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
+  })()
+})
+
+// postman测试用,需关登录验证
+rt.get("/test", (req, res) => {
+  ;(async ()=> {
+    let q = await User.findOneAndUpdate({mail: "2222@qq.com"}, {role: 3}, {new: true})
+    console.log(q)
+    res.json("ok")
+  })()
+})
 
 module.exports = rt

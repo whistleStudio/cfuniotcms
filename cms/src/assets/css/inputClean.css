@@ -1,6 +1,7 @@
 input {
   outline: none;
+  text-indent: 0.2em;
 }
 input::placeholder {
-  color: rgb(200, 200, 200);
+  color: rgb(200, 200, 200) ;
 }

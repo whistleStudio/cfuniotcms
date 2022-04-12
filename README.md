@@ -58,3 +58,11 @@ School:
 Admin:
 mounted默认激活菜单栏第一项
 userApi-getMyStudents 用于获得某个用户的学生
+### [2022040121732]
+Account:
+getPageContent-适配navigator
+userApi:
+getMyStudents
+editOneAccount-修改单个账号
+Schoool:
+batchEdit-索引选择范围，密码修改(指定, 随机生成)，学校修改

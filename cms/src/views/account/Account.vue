@@ -212,10 +212,8 @@ export default {
       })
       .then(res => res.json()
       .then(data => {
-        if (!data.err) alert("批量添加账号成功")
-        else {
-          alert(data.msg)
-        }
+        alert(data.msg)
+        if(!data.err) this.$router.push("/admin/account")
       }))
     },
     /* 更新页面内容 */
