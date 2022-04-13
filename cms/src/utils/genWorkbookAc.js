@@ -1,8 +1,10 @@
+import {roleMap} from "../views/account/dataMap.json"
+
 /* 生成表格 */
-//sheetCol-key要和dataName-key相同
 function genWorkbook (arr, dataName, sheetCol) {
   let workbook = new ExcelJS.Workbook()
   let sheet = workbook.addWorksheet(`data`)
+
   sheet.columns =  [
     {header: '序号', key: 'idx', width: '5'},
     ...sheetCol
@@ -24,8 +26,10 @@ function genWorkbook (arr, dataName, sheetCol) {
   arr.forEach((v, i) => {
     let row = sheet.getRow(i+3)
     let rowVal = [i+1]
-    sheetCol.forEach(e => {
-      rowVal.push(v[e.key])
+    sheetCol.forEach((e, idx) => {
+      if (idx===1) {
+        rowVal.push(roleMap[v[e.key]])
+      } else rowVal.push(v[e.key])
     })
     row.values = rowVal
     row.eachCell((cell) => {cell.alignment = {horizontal: 'left'}})

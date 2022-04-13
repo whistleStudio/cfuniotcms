@@ -3,16 +3,21 @@
   <div id="school">
     <div id="head">
       <button class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#batchEditModal">批量修改</button>
-      <button class="btn btn-outline-primary">批量导出</button>
+      <button @click="getMyStudents(0)" 
+      class="btn btn-outline-primary">数据导出</button>
+      <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
+      ><span></span></a>
       <!-- batchEditModal -->
       <div class="modal" tabindex="-1" id="batchEditModal" aria-labelledby="batchEditLabel" aria-hidden="true">
       <div class="modal-dialog">
       <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="batchEditLabel">批量修改</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button @click="batchCloseClick" 
+        type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <!-- range -->
         <div class="mb-3">
           <label for="batchRange" class="form-label"><i>*</i> 范围</label>
           <div id="batchRan">
@@ -26,18 +31,22 @@
             type="text" class="form-control" id="batchRange2" >
           </div>
         </div>
+        <!-- pwd -->
         <div class="mb-3">
           <label for="batchPwd" class="form-label"><i>*</i> 新密码</label>
           <input v-model="rdChecked" @change="rdCheckChange"
           class="form-check-input" type="checkbox" value="" id="randomGen">
           <label :class="{labelChecked: rdChecked}" class="form-check-label" for="randomGen">
-          随机
+          随机 (互不相同)
           </label> 
           <div v-if="!rdChecked" id="batchPassword">
-            <input v-model.trim="batchEdit.pwd"
+            <input v-model.trim="batchEdit.pwd" @focus="pwdFocus" @blur="pwdBlur"
+            :class="{'is-valid': pwdOk==1, 'is-invalid': !pwdOk}"
             type="text" class="form-control" id="batchPwd" placeholder="8-16个字符, 区分大小写">
+            <div class="invalid-feedback">密码不符合规范</div>
           </div>
         </div>
+        <!-- school -->
         <div class="mb-3">
           <label for="batchSchool" class="form-label">学校</label>
           <input v-model.trim="batchEdit.school"
@@ -45,8 +54,10 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary">确认</button>
+        <button @click="batchCloseClick"
+        id="batchCancel" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button :disabled="!bSubOk" @click="batchSubmitClick"
+        id="batchSubmit" type="button" class="btn btn-primary">确认</button>
       </div>
       </div>
       </div>
@@ -104,13 +115,14 @@
 
 <script>
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+import genWorkbook from "utils/genWorkbook"
 
 export default {
   data () {
     return {
       dataList: [],
       totalL: 0, actPage: 0, resetSta: 0,
-      actTr: -1, rdChecked: 0,
+      actTr: -1, rdChecked: 0, pwdOk: -1,
       indiEdit: {
         pwd: "",
         school: ""
@@ -119,11 +131,24 @@ export default {
         range: {l:"", r:""},
         pwd: "",
         school: ""
-      }
+      },
+      excelInfo: {link:"", name:""},
+      sheetCol: [
+        {header: '用户名', key: 'name', width: '25'},
+        {header: '用户邮箱', key: 'mail', width: '30'},
+        {header: '用户等级', key: 'authority', width: '10'}, 
+        {header: '用户密码', key: 'pwd', width: '25'},
+        {header: '学校', key: 'school', width: '30'}        
+      ]      
     }
   },
   components: {
     "page-navigator": PageNavigator
+  },
+  computed: {
+    bSubOk: function () {
+      return (this.pwdOk===1||this.rdChecked)&&this.batchEdit.range.l&&this.batchEdit.range.r
+    }
   },
   methods:{
     /* 获取学生列表 */
@@ -133,9 +158,17 @@ export default {
       .then(res => res.json()
       .then(data => {
         if (!data.err) {
-          this.dataList = data.dataList
-          this.totalL = data.totalL
-          this.actPage = page-1
+          if (page) {
+            this.dataList = data.dataList
+            this.totalL = data.totalL
+            this.actPage = page-1
+          } else {
+            let {totalData} = data
+            if (totalData.length) {
+              this.dataExpClick(totalData)      
+            } else alert("当前无数据可导出") 
+          }
+
         } else {
           aleart(data.msg)
           if (data.err === 4) this.$router.push("/login")
@@ -180,9 +213,7 @@ export default {
       this.indiEdit.school = ""
     },
     /* 批量修改modal */
-    rdCheckChange () {
-      this.batchEdit.pwd = this.rdChecked ? -1 : ""
-    },
+    /* 范围 */
     rangeFocus (i) {
       let ips = document.querySelectorAll("#batchRan>input")
       document.onkeydown = (ev)=>{
@@ -199,7 +230,71 @@ export default {
       } else if (val>this.totalL) val = this.totalL
       if (i) this.batchEdit.range.r = val
       else this.batchEdit.range.l = val
-    }
+    },
+    /* 密码 */
+    rdCheckChange () {
+      this.batchEdit.pwd = this.rdChecked ? -1 : ""
+      if (this.rdChecked) {
+        this.batchEdit.pwd = ""
+        this.pwdOk = -1
+      }
+    },
+    pwdFocus () {
+      this.pwdOk = -1
+      let pwdIp = document.querySelector("#batchPwd")
+      document.onkeydown = (ev)=>{
+        if (ev.key === "Enter") {
+          pwdIp.blur()
+        }
+      }
+    },
+    pwdBlur () {
+      let reg = /^([0-9a-zA-Z]){8,16}$/
+      if (reg.test(this.batchEdit.pwd)) this.pwdOk = 1
+      else this.pwdOk = 0
+    },
+    /* 取消、确定按钮 */
+    batchCloseClick () {
+      this.rdChecked = 0; this.pwdOk = -1;
+      this.batchEdit.range.l = ""; this.batchEdit.range.r = ""; this.batchEdit.pwd = ""; this.batchEdit.school = "";
+    },
+    batchSubmitClick () {
+      let l = this.batchEdit.range.l, r = this.batchEdit.range.r
+      let sub = l - r
+      let rL = sub>0?r:l, rR = sub>0?l:r 
+      let name = sessionStorage.getItem("username")
+      fetch("/api/user/editManyAccounts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify({
+          name, rL, rR,
+          pwd: this.batchEdit.pwd,
+          school: this.batchEdit.school,
+          isRd: this.rdChecked
+        })        
+      })
+      .then(res=>res.json()
+      .then(data=>{
+        document.querySelector("#batchCancel").click()
+        alert(data.msg)
+        this.getMyStudents()
+      }))
+
+    },
+    /* 数据导出 */  
+    dataExpClick (arr) {
+      ;(async ()=> {
+        let dateStamp = new Date().getTime()
+        let dataName = "学生账号信息_" + dateStamp
+        let workbook = genWorkbook(arr, dataName, this.sheetCol)
+        const buf = await workbook.xlsx.writeBuffer()
+        this.excelInfo.link = URL.createObjectURL(new Blob([buf.buffer]))
+        this.excelInfo.name = `${dataName}.xlsx`
+        setTimeout(()=>{this.$refs.excelA.click()}, 100)
+      })()
+    },
   },
   created () {
     this.getMyStudents()

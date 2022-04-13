@@ -103,6 +103,7 @@ rt.post("/getPageContent", (req, res) => {
 /* 获取某个老师的学生 */
 rt.get("/getMyStudents", (req, res) => {
   let {name, page} = req.query
+  page = parseInt(page)
   ;(async ()=>{
     try {
       let doc = await User.findOne({name})
@@ -110,7 +111,8 @@ rt.get("/getMyStudents", (req, res) => {
         let q = await User.find({pmail: doc.mail}, "name mail authority pwd school")
         let totalL = q.length
         let dataList = q.slice((page-1)*20, page*20)
-        res.json({err:0, dataList, totalL})
+        if (page) res.json({err:0, dataList, totalL})
+        else {res.json({err:0, totalData:q})}
       } else res.json({err:4, msg:"信息更改，请重新登录"})
     } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
   })()
@@ -128,6 +130,34 @@ rt.post("/editOneAccount", (req, res) => {
   })()
 })
 
+/* 批量编辑账号 */
+rt.post("/editManyAccounts", (req, res) => {
+  let {name, rL, rR, pwd, school, isRd} = req.body
+  console.log(req.body)
+  ;(async ()=> {
+    try {
+      let teacher = await User.findOne({name}, "mail")
+      if (teacher) {
+        let ids = []
+        let pmail = teacher.mail
+        let students = await User.find({pmail},null,{skip: rL-1, limit: rR-rL+1})
+        students.forEach(e => {ids.push(e._id)})
+        if (isRd) {
+          for (let v of ids) {
+            let newPwd = genRandomNum()
+            await User.updateOne({_id:v}, {pwd:newPwd, school})
+          }
+          res.json({err:0, msg:"操作成功"})
+        } else {
+          await User.updateMany({_id:{$in: ids}}, {pwd, school})
+          res.json({err:0, msg:"操作成功"})
+        }
+
+      } else res.json({err:4, msg:"操作失败，登录用户数据异常"})
+    } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
+  })()
+})
+
 // postman测试用,需关登录验证
 rt.get("/test", (req, res) => {
   ;(async ()=> {
@@ -136,5 +166,11 @@ rt.get("/test", (req, res) => {
     res.json("ok")
   })()
 })
+
+function genRandomNum () {
+  let d = new Date().getTime()
+  d = parseInt(d * (Math.random()*100+1)).toString()
+  return d.slice(0,8)
+}
 
 module.exports = rt

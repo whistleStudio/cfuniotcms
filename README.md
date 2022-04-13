@@ -66,3 +66,10 @@ getMyStudents
 editOneAccount-修改单个账号
 Schoool:
 batchEdit-索引选择范围，密码修改(指定, 随机生成)，学校修改
+### [2022040131748]
+utils:
+genWorkbook -优化 提高通用性; 关联Account
+School:
+批量编辑，数据导出完成
+userApi:
+editManyAccounts-修改多个账号

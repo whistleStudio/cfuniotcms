@@ -1,1 +1,1 @@
-console.log(Boolean(parseInt('SXXXX')))
+console.log(String.fromCharCode('65'))

@@ -104,7 +104,7 @@
 <script>
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
 import {roleMap} from "./dataMap.json"
-import genWorkbook from "utils/genWorkbook"
+import genWorkbook from "utils/genWorkbookAc"
 
 export default {
   data () {
@@ -125,7 +125,13 @@ export default {
       totalData: [],
       roleMap,
       totalL: 0, actPage: 0, resetSta: 0,
-      excelInfo: {link: "", name: ""}
+      excelInfo: {link: "", name: ""},
+      sheetCol: [
+        {header: '用户名', key: 'name', width: '25'},
+        {header: '用户类型', key: 'role', width: '15'},
+        {header: '用户邮箱', key: 'mail', width: '30'},
+        {header: '等级', key: 'authority', width: '5'},        
+      ]
     }
   },
   computed: {
@@ -254,7 +260,7 @@ export default {
       ;(async ()=> {
         let dateStamp = new Date().getTime()
         let dataName = "账号信息_" + dateStamp
-        let workbook = genWorkbook(arr, dataName)
+        let workbook = genWorkbook(arr, dataName, this.sheetCol)
         const buf = await workbook.xlsx.writeBuffer()
         this.excelInfo.link = URL.createObjectURL(new Blob([buf.buffer]))
         this.excelInfo.name = `${dataName}.xlsx`
