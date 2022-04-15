@@ -75,3 +75,10 @@ userApi:
 editManyAccounts-修改多个账号
 ### [2022040141725]
 code 开始
+### [2022040151725]
+code: 
+页面UI搭建完成，功能模块抽离
+genModal - 相关验证
+批量创建激活码功能完成
+codeApi:
+/api/code/genModalSubmit - 后台随机生成定数定级激活码

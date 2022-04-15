@@ -1,34 +1,19 @@
-input::placeholder {
-  color: rgb(200, 200, 200);
+#genModal i {
+  color: red;
 }
-#account {
+#code {
   height: 100%;
-  box-sizing: border-box;
 }
-#search {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+#searchListShow {
+  height: calc(100% - 40px - 2.4rem - 80px - 70px);
+  /* background-color: pink; */
+  overflow-y: auto;
 }
-.search-box {
-  width: 21%;
-  height: 80px;
-  margin-bottom: 0 !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-.search-box input {
+#batch>button {
+  margin: 1.2rem;
   height: 40px;
+  margin-left: 0;
 }
-.search-btn {
-  width: 10%;
-  height: 50px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-.search-btn>button {
-  width: 47%;
-  height: 40px;
+#navigator {
+  height: 70px;
 }

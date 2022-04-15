@@ -17,7 +17,7 @@
       <button @click="batchGenClick" 
       class="btn btn-success"  data-bs-toggle="modal" data-bs-target="#genModal">批量添加账号</button>
       <button @click="getPageContent(0, 1)"
-      class="btn btn-outline-success">批量导出账号</button>
+      class="btn btn-outline-success">导出账号</button>
       <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
       ><span></span></a>
     </div>

@@ -39,7 +39,7 @@ input::placeholder {
 }
 #content {
   width: 100%;
-  height: calc(100% - 90px - 4.4rem);
+  height: calc(100% - 80px - 40px - 2.4rem);
   /* background-color: gainsboro; */
 }
 #genModal .modal-body i {
