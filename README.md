@@ -82,3 +82,11 @@ genModal - 相关验证
 批量创建激活码功能完成
 codeApi:
 /api/code/genModalSubmit - 后台随机生成定数定级激活码
+### [2022040181731]
+api记得前面加 `/`!!!
+code:
+关键词查询，数据导出
+searchBar:(account也需修改一下)
+kws改为属性keywords的深拷贝，以消除与父级页面数据的相互干涉，只有点击查询才会读取input里的新关键词
+mongo比较器$gt大于,$gte大于等于,$lt小于,$lte小于等于
+filter:[{key: {"$gt": num1, "$lt": num2}}] Date类型也可以比较

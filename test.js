@@ -1,2 +1,3 @@
-let a = {a:1, b:1}
-console.log(a.keys)
+let d = new Date("2022-04-18")
+console.log(d)
+// console.log(valueO)

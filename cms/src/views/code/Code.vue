@@ -2,17 +2,22 @@
 <template>
   <div id="code">
     <div id="searchBar">
-      <search-bar :keywords="keywords" />
+      <search-bar :keywords="keywords" 
+      @reset-search="pageSearch" @keyword-search="pageSearch" />
     </div>
     <div id="batch">
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#genModal">批量创建激活码</button>
-      <button class="btn btn-outline-success">导出激活码</button>
+      <button @click="getCodeList(0)" 
+      class="btn btn-outline-success">导出激活码</button>
+      <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
+      ><span></span></a>
     </div>
     <div id="searchListShow">
       <search-list-show :colHead="keywords" :tbData="tbData" :actPage="actPage" />
     </div>
     <div id="navigator">
-      <page-navigator  />
+      <page-navigator :totalItemsL="totalL" :resetState="isReset" 
+      @pageChange="getCodeList"/>
     </div>
 
     <!-- genModal -->
@@ -51,6 +56,7 @@
 const SearchBar = ()=>import("components/common/searchBar/SearchBar")
 const SearchListShow = ()=>import("components/common/searchListShow/SearchListShow")
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+import genWorkbook from "utils/genWorkbook"
 
 export default {
   data () {
@@ -62,12 +68,22 @@ export default {
         {type:"date", k:"genDate", tag: "创建时间", v: ""},
       ],
       tbData: [],
-      actPage: 0, totalL: 0,
+      actPage: 0, totalL: 0, isReset: 0, isSearch: 0,
       genModalInfo: [
         {tag:"激活码等级", v:"", ph:"1-10", hint:"该项不能为空", ok:-1},
         {tag:"使用时长", v:"", ph:"请输入天数, 默认30", hint:"", ok:-1},
         {tag:"个数", v:"", ph:"1-100", hint:"该项不能为空", ok:-1},
-      ],      
+      ],
+      sheetCol: [
+        {header: '激活码', key: 'code', width: '30'},
+        {header: '激活等级', key: 'auth', width: '10'},
+        {header: '使用时长', key: 'authExp', width: '10'},
+        {header: '创建时间', key: 'genDate', width: '30'},
+      ],
+      excelInfo: {
+        link: "",
+        name: ""
+      }     
     }
   },
   computed: {
@@ -81,7 +97,9 @@ export default {
     "page-navigator": PageNavigator
   },
   methods: {
-    getCodeList (page=1, mode=0) {
+    // 内容获取 page=0,导出表格
+    getCodeList (page=1) {
+      let mode = this.isSearch
       fetch("/api/code/getCodeList", {
         method: "POST",
         headers: {
@@ -101,7 +119,10 @@ export default {
           if (!data.err) {
             this.tbData = data.dataSlice
             this.totalL = data.totalL
+            this.actPage = page-1
           } else alert(data.msg)
+        } else {
+          this.expData(data.totalData)
         }
       }))
     },
@@ -158,7 +179,36 @@ export default {
         else this.genModalClear()
         alert(data.msg)
       }))
+    },
+    /* pl ? 查询 : 重置 */
+    pageSearch (pl) {
+      if (pl) {
+        this.isSearch = 1
+        this.keywords.forEach((e, i) => {
+          e.v = pl[i].v
+        })        
+      } else this.keywords.forEach(e => e.v="")
+      
+      this.getCodeList()
+      this.isReset = 1
+      // 立即执行，watch监控不到
+      setTimeout(()=>{this.isReset=0}, 50)      
+    },
+    /* 数据导出 */
+    expData (arr) {
+      ;(async ()=>{
+        let d = new Date().getTime()
+        let dataName = "物联网激活码"+d
+        let workbook = genWorkbook(arr, dataName, this.sheetCol)
+        const buf = await workbook.xlsx.writeBuffer()
+        this.excelInfo.link = URL.createObjectURL(new Blob([buf.buffer]))
+        this.excelInfo.name = `${dataName}.xlsx`
+        setTimeout(()=>{this.$refs.excelA.click()}, 100)
+      })()
     }
+  },
+  created () {
+    this.getCodeList()
   }
 }
 </script>

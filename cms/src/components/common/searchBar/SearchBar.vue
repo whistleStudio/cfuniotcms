@@ -20,7 +20,7 @@
   export default {
   data () {
     return {
-      kws: this.keywords
+      kws: []
     }
   },
   computed: {
@@ -40,13 +40,14 @@
       this.$emit("reset-search")
     },
     keywordSearch () {
-      let payload = {}
-      this.kws.forEach(e => {
-        payload[e.k] = e.v
-      })
-      this.$emit("keyword-search", payload)
+      this.$emit("keyword-search", this.kws)
     }
   },
+  created () {
+    this.keywords.forEach(e => {
+      this.kws.push({...e})
+    })
+  }
   }
 </script>
 

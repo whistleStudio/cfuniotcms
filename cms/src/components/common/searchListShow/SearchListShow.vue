@@ -42,6 +42,7 @@
     components: {},
     watch: {
       tbData (newVal) {
+        // console.log("get new data")
         this.tbList = newVal 
       }
     }
@@ -50,5 +51,7 @@
 
 <style scoped>
 /* 需要bootstrap */
-
+#searchListShow {
+  height: 100%;
+}
 </style>

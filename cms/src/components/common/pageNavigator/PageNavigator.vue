@@ -13,7 +13,7 @@
         <li v-if="actPageIdx<navPagesL-1" @click="navLiChangeClick(2)" class="navLi navLiChange">尾页</li>
       </ul>
       <div id="toPage">到<input :disabled="pagesL<=1" v-model="toPageNum" 
-      @focus="toPageIpFocus"
+      @focus="toPageIpFocus" @blur="toPageIpBlur"
       ref="toPageIp" type="text">页</div>
     </div>
   </div>
@@ -87,30 +87,32 @@
       toPageIpFocus () {
         document.onkeydown = (ev)=>{
           if (ev.key === "Enter") {
-            let v = parseInt(this.toPageNum)
-            if (v) {
-              if (v<0) v = 1
-              if (v>this.pagesL) v = this.pagesL
-              if (this.pagesL > 5) {
-                if (v<=2) {
-                  this.page_1 = 1
-                  this.actPageIdx = v - 1
-                } else if (v>=this.pagesL-1) {
-                  this.page_1 = this.pagesL - 4
-                  this.actPageIdx = v - this.page_1
-                } else {
-                  this.page_1 = v - 2
-                  this.actPageIdx = 2
-                }
-              } else {
-                this.actPageIdx = v - 1
-              }
-              this.toPageNum = v
-              this.$emit("pageChange", v)
-            } else this.toPageNum = ""
             this.$refs.toPageIp.blur()
           }
         }
+      },
+      toPageIpBlur () {
+        let v = parseInt(this.toPageNum)
+        if (v) {
+          if (v<0) v = 1
+          if (v>this.pagesL) v = this.pagesL
+          if (this.pagesL > 5) {
+            if (v<=2) {
+              this.page_1 = 1
+              this.actPageIdx = v - 1
+            } else if (v>=this.pagesL-1) {
+              this.page_1 = this.pagesL - 4
+              this.actPageIdx = v - this.page_1
+            } else {
+              this.page_1 = v - 2
+              this.actPageIdx = 2
+            }
+          } else {
+            this.actPageIdx = v - 1
+          }
+          this.toPageNum = v
+          this.$emit("pageChange", v)
+        } else this.toPageNum = ""
       }
     },
     watch: {
