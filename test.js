@@ -1,3 +1,5 @@
-let d = new Date("2022-04-18")
-console.log(d)
-// console.log(valueO)
+{
+  let a = 2
+}
+
+console.log(a)

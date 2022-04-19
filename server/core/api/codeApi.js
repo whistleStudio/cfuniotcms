@@ -52,21 +52,6 @@ function genCode () {
   return code
 }
 
-// async function gen (num, auth, authExp, sheet) {
-//   if (num <= 50) {
-//     for(let i = 0; i < num; i++){
-//       let code = genCode()
-//       await AuthCode.create({code, auth, authExp})
-//       let row = sheet.getRow(i+2)
-//       row.values = [code, auth, authExp+'天']
-//       row.commit()
-//     } 
-//   } else {
-//     return 0
-//   }
-//   return 1
-// }
-
 
 
 module.exports = rt

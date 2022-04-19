@@ -90,3 +90,11 @@ searchBar:(account也需修改一下)
 kws改为属性keywords的深拷贝，以消除与父级页面数据的相互干涉，只有点击查询才会读取input里的新关键词
 mongo比较器$gt大于,$gte大于等于,$lt小于,$lte小于等于
 filter:[{key: {"$gt": num1, "$lt": num2}}] Date类型也可以比较
+### [2022040191730]
+user: 
+管理员管理页面基本完成
+userapi:
+/getAdmins - 获取管理员列表
+/addAdmin - 新增管理员，有则改，无则增（引入random-words库，用于生成随机name）
+现阶段，后台管理教师、普通管理员身份登入业务已完成
+*学习记录:* 插件引入时，通常会在外层加个div，这里的div, id最好不要与插件里的重复，以免样式受层叠性影响乱套  

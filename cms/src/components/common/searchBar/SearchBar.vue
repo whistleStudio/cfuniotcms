@@ -4,9 +4,19 @@
     <div id="search">
       <div v-for="(v, i) in kws" :key="i" 
       class="mb-3 search-box">
-      <label for="formGroupExampleInput" class="form-label">{{v.tag}}</label>
-      <input :placeholder="'请输入'+v.tag" v-model="v.v"
-      :type="v.type" class="form-control" id="formGroupExampleInput">
+        <div v-if="v.type!='select'">
+          <label :for="'sbip'+i" class="form-label">{{v.tag}}</label>
+          <input :placeholder="'请输入'+v.tag" v-model="v.v"
+          :type="v.type" class="form-control" :id="'sbip'+i">        
+        </div>
+        <div v-else>
+          <label :for="'sbip'+i" class="form-label">{{v.tag}}</label>
+          <select v-model="v.v" class="form-select" aria-label="Default select example">
+            <option v-for="(ov, oi) in v.opt" :key="oi" :value="oi">
+              {{ov}}
+            </option>
+          </select>          
+        </div>
       </div> 
       <div class="search-btn">
         <button @click="resetSearch" class="btn btn-primary">重置</button>
@@ -36,6 +46,7 @@
     resetSearch () {
       this.kws.forEach(e => {
         e.v = ""
+        if (e.type=="select") e.v=0
       })
       this.$emit("reset-search")
     },

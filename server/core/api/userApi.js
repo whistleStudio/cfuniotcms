@@ -2,6 +2,7 @@ const express = require("express")
 const rt = express.Router()
 const User = require("../db/model/User")
 const Device = require("../db/model/Device")
+const randomWords = require("random-words")
 var hash = require('object-hash')
 
 /* 批量生成时校验用户名前缀 */
@@ -157,6 +158,64 @@ rt.post("/editManyAccounts", (req, res) => {
     } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
   })()
 })
+
+/* 获取管理员列表 */
+rt.post("/getAdmins", (req, res) => {
+  let keys = ["name", "mail", "role"]
+  let filter = {}
+  keys.forEach(k => {
+    let v = req.body[k]
+    if (v) filter[k] = v
+    if (k=="role") filter[k] = {"$gte": 3}
+  })
+  let {page} = req.body
+  ;(async ()=>{
+    try {
+      let docs = await User.find(filter)
+      if (docs) {
+        let dataSlice = docs.slice((page-1)*20, page*20)
+        let totalL = docs.length
+        res.json({err:0, dataSlice, totalL})
+      } else res.json({err:1, msg:"database changed"})
+    } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
+  })()
+})
+
+/* 新增管理员，有则改，无则增 */
+rt.post("/addAdmin", (req, res) => {
+  let {mail, role} = req.body
+  console.log(req.body)
+  ;(async ()=>{
+    let doc = await User.findOneAndUpdate({mail}, {role})
+    if (doc) {
+      res.json({err:0, msg:`升级成功, 用户名:${doc.name} 邮箱:${mail}`})
+    } else {
+      let flag = 1
+      let pwd = mail.split("@")[0]
+      while (flag) {
+        let rdName = genRdName(6, 16)
+        let doc = await User.findOne({name: rdName})
+        if (!doc) {
+          flag = 0
+          await User.create({pwd, mail, role, name:rdName})
+          await Device.create({user: mail, name:"创趣小屋", did:1})
+          res.json({err:0, msg:`新增管理员, 用户名:${rdName} 邮箱:${mail}`})
+        }
+      }
+      
+    }
+  })()
+})
+
+function genRdName (minL, maxL) {
+  let ok = 0, rdName
+  while (!ok) {
+    rdName = randomWords()
+    if (rdName.length>=minL&&rdName.length<=maxL) ok = 1
+  }
+  return rdName
+}
+
 
 // postman测试用,需关登录验证
 rt.get("/test", (req, res) => {

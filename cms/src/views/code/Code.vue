@@ -13,7 +13,7 @@
       ><span></span></a>
     </div>
     <div id="searchListShow">
-      <search-list-show :colHead="keywords" :tbData="tbData" :actPage="actPage" />
+      <search-list-show  :colHead="keywords" :tbData="tbData" :actPage="actPage" />
     </div>
     <div id="navigator">
       <page-navigator :totalItemsL="totalL" :resetState="isReset" 
@@ -174,8 +174,10 @@ export default {
       })
       .then(res=>res.json()
       .then(data=>{
-        if (!data.err) 
+        if (!data.err) {
           document.querySelector("#genModal .btn-close").click()
+          this.pageSearch()
+        }
         else this.genModalClear()
         alert(data.msg)
       }))

@@ -1,15 +1,14 @@
 #genModal i {
   color: red;
 }
-#code {
+#user {
   height: 100%;
 }
-#code>#searchListShow {
+#user>#searchListShow {
   height: calc(100% - 40px - 2.4rem - 80px - 70px);
-  /* background-color: pink; */
   overflow-y: auto;
 }
-#batch>button {
+#addUser>button {
   margin: 1.2rem;
   height: 40px;
   margin-left: 0;
