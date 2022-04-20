@@ -7,7 +7,7 @@
     </div>
     <div id="addUser">
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#genModal">新增管理员</button>
-      <button v-if="curRole>3" class="btn btn-danger">删除管理员</button>
+      <button v-if="curRole>3" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delModal">删除管理员</button>
     </div>
     <div id="searchListShow">
       <search-list-show :colHead="SBKeywords" :tbData="tbData" />
@@ -50,6 +50,32 @@
       </div>
       </div>
     </div>
+
+    <!-- deleteModal -->
+      <div class="modal" id="delModal" tabindex="-1" aria-labelledby="genModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" data-bs-toggle="tooltip" data-bs-placement="right" title="仅会将用户从管理组移除，不会删除账号">删除</h5>
+        <button @click="delIpClear"
+        type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="delIp" class="form-label"><i>*</i> 用户名或用户邮箱</label>
+          <input v-model.trim="delAdmin" @focus="delIpFocus" 
+          type="email" class="form-control" id="delIp" aria-describedby="emailHelp" placeholder="请输入用户名或用户邮箱" >
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="delIpClear" 
+        type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button :disabled="!delAdmin" @click="delIpSubmit" 
+        type="button" class="btn btn-primary">确定</button>
+      </div>
+      </div>
+      </div>
+      </div> 
   </div>  
 </template>
 
@@ -57,6 +83,7 @@
 const SearchBar = ()=>import("components/common/searchBar/SearchBar")
 const SearchListShow = ()=>import("components/common/searchListShow/SearchListShow")
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+import {roleMap} from "views/account/dataMap.json" 
 
 export default {
   data () {
@@ -64,7 +91,7 @@ export default {
       SBKeywords: [
         {type:"text", k:"name", tag: "用户名", v: ""},
         {type:"text", k:"mail", tag: "用户邮箱", v: ""},
-        {type:"select", k:"role", tag: "用户类型", v: 0, opt:['普通管理员', '超级管理员']},
+        {type:"select", k:"role", tag: "用户类型", v: 0, opt:['普通管理员', '超级管理员'], map:roleMap},
       ],
       genModalInfo : [
         {tag:"用户邮箱", v:"", ph:"name@exapmle.com", hint:"糟糕，这好像不是一个邮箱", ok:-1},
@@ -72,7 +99,8 @@ export default {
       ],
       tbData: [], totalL: 0,
       actPage: 0, perPageCount: 20,
-      isSearch: 0, isReset: 0, curRole: 2
+      isSearch: 0, isReset: 0, curRole: sessionStorage.getItem("role"),
+      delAdmin: ''
     }
   },
   computed: {
@@ -109,7 +137,7 @@ export default {
         } else alert(data.msg)
       }))
     },
-    /* modal */
+    /* genModal */
     genIpFocus () {
       this.genModalInfo[0].ok = -1
       document.onkeydown = ev => {
@@ -158,16 +186,36 @@ export default {
         e.v=""
         if (e.type=="select") e.v=0
       })
-      
       this.getAdmins()
       this.isReset = 1
       // 立即执行，watch监控不到
       setTimeout(()=>{this.isReset=0}, 50)      
-    },    
+    }, 
+    /* delModal */   
+    delIpFocus () {
+      document.onkeydown = ev=>{
+        if (ev.key==="Enter") {
+          document.querySelector("#delIp").blur()
+        }
+      }
+    },
+    delIpClear () {
+      this.delAdmin = ""
+    },
+    delIpSubmit () {
+      fetch (`/api/user/delAdmin?delAdmin=${this.delAdmin}&myRole=${this.curRole}`)
+      .then(res => res.json()
+      .then(data => {
+        alert(data.msg)
+        if (!data.err) {
+          //reset
+          this.pageSearch()
+        }
+      }))
+    }
   },
   created () {
     this.getAdmins()
-    this.curRole = sessionStorage.getItem("role")
   }
 
 }

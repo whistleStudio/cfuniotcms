@@ -12,7 +12,8 @@
       <tr v-for="(v, i) in tbList" :key="i">
         <th scope="row">{{actPage*perPageCount+i+1}}</th>
         <td v-for="(tdv, tdi) in colHeadList" :key="tdi">
-          {{v[tdv.k]}}
+          <span v-if="tdv.map">{{tdv.map[v[tdv.k]]}}</span>
+          <span v-else>{{v[tdv.k]}}</span> 
         </td>
       </tr>
       </tbody>
@@ -35,7 +36,7 @@
     },
     props: {
       tbData: Array, //[{name: "wsh",...}]
-      colHead: Array, //[{k:"code", tag: "激活码"},...]
+      colHead: Array, //[{k:"code", tag: "激活码"},...] k要和请求来的数据tbList的k相同
       actPage: {type: Number, default: 0},
       perPageCount: {type: Number, default: 20}
     },

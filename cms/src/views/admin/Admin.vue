@@ -57,8 +57,7 @@
       // console.log(role)
       this.username = username
       if (role==2) this.menuList = this.menuList.slice(3,4)
-      else this.menuList = this.menuList.slice(0,3)
-      // console.log(this.menuList)
+      // else this.menuList = this.menuList.slice(0,3)
     },
     mounted () {
       this.menuLiClick(0, this.menuList[0].name)

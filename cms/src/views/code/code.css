@@ -1,4 +1,4 @@
-#genModal i {
+i {
   color: red;
 }
 #code {
@@ -16,4 +16,10 @@
 }
 #navigator {
   height: 70px;
+}
+#delCheck {
+  display: flex;
+}
+.form-check {
+  margin-right: 1rem;
 }

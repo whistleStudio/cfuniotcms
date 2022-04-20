@@ -22,10 +22,11 @@ router.beforeEach((to, from, next) => {
     if (role == 2) {
       if (to.path === "/admin/school"||"/admin") next()
       else {next("/login"); alert("当前用户组不支持该操作")}
-    } else {
-      if (to.path !== "/admin/school") next()
-      else {next("/admin/user"); alert("当前用户组不支持该操作")}
-    }
+    } else {next()}
+    // else {
+    //   if (to.path !== "/admin/school") next()
+    //   else {next("/admin/user"); alert("当前用户组不支持该操作")}
+    // }
   } else {
     next("/login")
     alert("token失效, 请重新登录")

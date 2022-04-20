@@ -18,6 +18,8 @@
       class="btn btn-success"  data-bs-toggle="modal" data-bs-target="#genModal">批量添加账号</button>
       <button @click="getPageContent(0, 1)"
       class="btn btn-outline-success">导出账号</button>
+      <button v-if="curRole>3" data-bs-toggle="modal" data-bs-target="#delModal" 
+      class="btn btn-danger">删除账号</button>
       <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
       ><span></span></a>
     </div>
@@ -64,7 +66,7 @@
         <div v-for="(v,i) in genModalInfo" :key="i" 
         class="mb-3">
           <label :for="'genGroupInput'+i" class="form-label"><i v-if="i<3">* </i>{{v.k}}</label>
-          <input :id="'genGroupInput'+i" :placeholder="v.ph" v-model="v.v" :class="{'is-valid': v.ok==1, 'is-invalid': v.ok==0}"
+          <input :id="'genGroupInput'+i" :placeholder="v.ph" v-model.trim="v.v" :class="{'is-valid': v.ok==1, 'is-invalid': v.ok==0}"
           @focus="genIpFocus(i)" @blur="genIpBlur(i, v.v)" @click="genIpClick(i)"
           ref="genIp" type="text" class="form-control" >
           <div v-if="i<3" 
@@ -97,7 +99,48 @@
       </div>
       </div>
       </div>
-    </div>    
+    </div>
+    <!-- deleteModal -->
+      <div class="modal" id="delModal" tabindex="-1" aria-labelledby="delModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" data-bs-toggle="tooltip" data-bs-placement="right" title="仅会将用户从管理组移除，不会删除账号">删除</h5>
+        <button @click="delIpClear"
+        type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="delCheck">
+          <div class="form-check">
+          <input @change="delIpChange" v-model="delMode" value="0" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+          <label class="form-check-label" for="flexRadioDefault1">
+          单个普通/学生账号
+          </label>
+          </div>
+          <div class="form-check">
+          <input @change="delIpChange" v-model="delMode" value="1" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+          <label class="form-check-label" for="flexRadioDefault2">
+          批量学生账号
+          </label>
+          </div>           
+        </div>
+        <div class="mb-3">
+        <label for="delIp" class="form-label"><i>*</i> {{delIpInfo[delMode].tag}}</label>
+        <input v-model.trim="delIpInfo[delMode].v" :placeholder="delIpInfo[delMode].ph" 
+        @focus="delIpFocus"
+        type="text" class="form-control" id="delIp">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="delIpClear" 
+        type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button  @click="delIpSubmit" :disabled="!delIpInfo[delMode].v"
+        type="button" class="btn btn-primary">确定</button>
+      </div>
+      </div>
+      </div>
+      </div>
+
   </div>
 </template>
 
@@ -131,6 +174,12 @@ export default {
         {header: '用户类型', key: 'role', width: '15'},
         {header: '用户邮箱', key: 'mail', width: '30'},
         {header: '等级', key: 'authority', width: '5'},        
+      ],
+      curRole: sessionStorage.getItem("role"),
+      delMode: 0,
+      delIpInfo: [
+        {tag: "用户名或用户邮箱", k: "nameormail", v:"", ph:"请输入用户名或用户邮箱"},
+        {tag: "父级邮箱", k: "pmail", v:"", ph:"name@example.com"}
       ]
     }
   },
@@ -275,6 +324,33 @@ export default {
       // 立即执行，watch监控不到
       setTimeout(()=>{this.resetSta=0}, 50)
     },
+    /* delModal */
+    delIpChange () {
+      this.delIpInfo.forEach(e => e.v="")
+    },
+    delIpClear () {
+      this.delIpChange()
+      this.delMode = 0
+    },
+    delIpSubmit () {
+      let del = this.delMode ? this.delIpInfo[1].v : this.delIpInfo[0].v
+      fetch(`/api/user/delAccount?mode=${this.delMode}&del=${del}`)
+      .then(res => res.json()
+      .then(data => {
+        alert(data.msg)
+        if (!data.err) {
+          this.searchContent({})
+          document.querySelector("#delModal .btn-close").click()
+        }
+      }))
+    },
+    delIpFocus () {
+      document.onkeydown = ev=>{
+        if (ev.key === "Enter") {
+          document.querySelector("#delIp").blur()
+        }
+      }
+    },    
 
   },
   created () {

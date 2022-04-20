@@ -8,7 +8,8 @@
     <div id="batch">
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#genModal">批量创建激活码</button>
       <button @click="getCodeList(0)" 
-      class="btn btn-outline-success">导出激活码</button>
+      class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#delModal">导出激活码</button>
+      <button v-if="curRole>3" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delModal">删除激活码</button>
       <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
       ><span></span></a>
     </div>
@@ -49,6 +50,48 @@
       </div>
       </div>
     </div>
+   
+    <!-- deleteModal -->
+      <div class="modal" id="delModal" tabindex="-1" aria-labelledby="delModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+      <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" data-bs-toggle="tooltip" data-bs-placement="right" title="仅会将用户从管理组移除，不会删除账号">删除</h5>
+        <button @click="delIpClear"
+        type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="delCheck">
+          <div class="form-check">
+          <input @change="delIpChange" v-model="delMode" value="0" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+          <label class="form-check-label" for="flexRadioDefault1">
+          单个
+          </label>
+          </div>
+          <div class="form-check">
+          <input @change="delIpChange" v-model="delMode" value="1" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+          <label class="form-check-label" for="flexRadioDefault2">
+          多个
+          </label>
+          </div>           
+        </div>
+        <div class="mb-3">
+        <label for="delIp" class="form-label"><i>*</i> {{delIpInfo[delMode].tag}}</label>
+        <input v-model.trim="delIpInfo[delMode].v" :placeholder="delIpInfo[delMode].ph" 
+        @focus="delIpFocus"
+        type="text" class="form-control" id="delIp">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button @click="delIpClear" 
+        type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button  @click="delIpSubmit" :disabled="!delIpInfo[delMode].v"
+        type="button" class="btn btn-primary">确定</button>
+      </div>
+      </div>
+      </div>
+      </div>
+
   </div>  
 </template>
 
@@ -83,7 +126,13 @@ export default {
       excelInfo: {
         link: "",
         name: ""
-      }     
+      },
+      curRole: sessionStorage.getItem("role"),
+      delMode: 0,
+      delIpInfo: [
+        {tag: "激活码", k: "code", v: "", ph: "请输入激活码"},
+        {tag: "创建时间", k: "genDate", v: "", ph: "请输入创建时间"}
+      ]     
     }
   },
   computed: {
@@ -207,7 +256,34 @@ export default {
         this.excelInfo.name = `${dataName}.xlsx`
         setTimeout(()=>{this.$refs.excelA.click()}, 100)
       })()
-    }
+    },
+    /* delModal */
+    delIpChange () {
+      this.delIpInfo.forEach(e => e.v="")
+    },
+    delIpFocus () {
+      document.onkeydown = ev=>{
+        if (ev.key === "Enter") {
+          document.querySelector("#delIp").blur()
+        }
+      }
+    },
+    delIpClear () {
+      this.delIpChange()
+      this.delMode = 0
+    },
+    delIpSubmit () {
+      let del = this.delMode ? this.delIpInfo[1].v : this.delIpInfo[0].v
+      fetch(`/api/code/delCode?mode=${this.delMode}&del=${del}`)
+      .then(res => res.json()
+      .then(data => {
+        alert(data.msg)
+        if (!data.err) {
+          this.pageSearch()
+          document.querySelector("#delModal .btn-close").click()
+        }
+      }))
+    } 
   },
   created () {
     this.getCodeList()

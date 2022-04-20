@@ -30,12 +30,16 @@ rt.post("/batchGen", (req, res) => {
   let {pmail, num, name, school} = req.body
   ;(async ()=>{
     try {
-      // pmail是否为已存在账号，是-改变role; 否-创建
-      let teacher = await User.findOneAndUpdate({mail: pmail}, {role: 2})
+      // pmail是否为已存在账号，是-改变role(=1); 否-创建
+      // let teacher = await User.findOneAndUpdate({mail: pmail}, {role: 2})
+      let teacher = await User.findOne({mail: pmail})
       if (!teacher) {
-        await User.create({name: name+"0", role: 2, pwd: "12345678", mail: pmail, school})
+        let pwd = pmail.split("@")[0]
+        await User.create({name: name+"0", role: 2, pwd, mail: pmail, school})
         await Device.create({user: pmail, name:"创趣小屋", did:1})
-      }
+      } 
+      else if (teacher.role===1) await User.updateOne({mail: pmail}, {role: 2})
+      else if (!teacher.role) throw "err1"
       // 批量生成
       let timeStamp = new Date().getTime()
       let val = timeStamp+pmail
@@ -62,7 +66,9 @@ rt.post("/batchGen", (req, res) => {
       }
       console.log(num, "create success")
       res.json({err:0, msg:"批量添加账号成功"})
-    } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
+    } catch(e){console.log(e); 
+      if (e==="err1") res.json({err:1, msg:"操作失败，无法将学生账号作为父级"})
+      else res.json({err:5, msg:"database error"})}
   })()
 })
 
@@ -134,7 +140,6 @@ rt.post("/editOneAccount", (req, res) => {
 /* 批量编辑账号 */
 rt.post("/editManyAccounts", (req, res) => {
   let {name, rL, rR, pwd, school, isRd} = req.body
-  console.log(req.body)
   ;(async ()=> {
     try {
       let teacher = await User.findOne({name}, "mail")
@@ -181,14 +186,16 @@ rt.post("/getAdmins", (req, res) => {
   })()
 })
 
-/* 新增管理员，有则改，无则增 */
+/* 新增管理员，有则改，无则增，排除学生身份 */
 rt.post("/addAdmin", (req, res) => {
   let {mail, role} = req.body
-  console.log(req.body)
   ;(async ()=>{
-    let doc = await User.findOneAndUpdate({mail}, {role})
+    let doc = await User.findOne({mail})
     if (doc) {
-      res.json({err:0, msg:`升级成功, 用户名:${doc.name} 邮箱:${mail}`})
+      if (doc.role) {
+        await User.updateOne({mail}, {role})
+        res.json({err:0, msg:`升级成功, 用户名:${doc.name} 邮箱:${mail}`})
+      } else res.json({err:1, msg:`操作失败，学生用户无法升至管理员`})
     } else {
       let flag = 1
       let pwd = mail.split("@")[0]
@@ -204,6 +211,64 @@ rt.post("/addAdmin", (req, res) => {
       }
       
     }
+  })()
+})
+
+/* 删除管理员，不会删除账号 */
+rt.get("/delAdmin", (req, res) => {
+  let {delAdmin, myRole} = req.query
+  let filter = {
+    $or: [
+      {name: delAdmin},
+      {mail: delAdmin}
+    ]
+  }
+  ;(async ()=>{
+    try {
+      let doc = await User.findOne(filter)
+      if (doc) {
+        console.log(doc.role)
+        if (doc.role < myRole) {
+          await User.updateOne(filter, {role: 1})
+          res.json({err:0, msg:`操作成功, 用户:${delAdmin}恢复为普通用户`})
+        } else res.json({err:1, msg:"操作失败, 仅可移除权限低于您的用户"})
+      } else res.json({err:1, msg:"操作失败, 该用户不存在"})
+    } catch(e){console.log(e); res.json({err:5, msg:"database error"})}
+
+
+  })()
+})
+
+/* 删除普通/学生账号 */
+rt.get("/delAccount", (req, res) => {
+  let {mode, del} = req.query
+  mode = parseInt(mode)
+  ;(async ()=>{
+    try {
+      if (mode) {
+        let docs = await User.find({pmail: del, role: 0}, "mail")
+        if (docs) {
+          let stuMails = []
+          docs.forEach(e => stuMails.push(e.mail))
+          let q = await User.deleteMany({pmail: del, role: 0})
+          await Device.deleteMany({user: {$in: stuMails}})
+          res.json({err:0, msg:`共删除${q.deletedCount}账号`})
+        } else res.json({err:1, msg:"无匹配账号"}) 
+      } else {
+        let filter = {
+          $or: [{name: del},{mail:del}]
+        }
+        let doc = User.findOne(filter)
+        if (doc) {
+          if (doc.role<2) {
+            await User.deleteOne(filter)
+            await Device.deleteMany({user: doc.mail})
+            res.json({err:0, msg:"删除成功"})
+          } else res.json({err:1, msg:"操作失败，无法删除该用户组账号"}) 
+        } else res.json({err:1, msg:"无匹配账号"})
+      }
+    } catch(e){console.log(e); res.json({err:0, msg: "database error"})} 
+
   })()
 })
 

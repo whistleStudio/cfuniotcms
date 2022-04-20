@@ -31,7 +31,7 @@ rt.post("/getCodeList", (req, res) => {
       filter[k] = {"$gte": d, "$lt": d2}
     }
   })
-  console.log(filter.genDate)
+  // console.log(filter.genDate)
   ;(async ()=>{
     try {
       let docs = await AuthCode.find(filter)
@@ -40,6 +40,28 @@ rt.post("/getCodeList", (req, res) => {
         if(page) res.json({err:0, dataSlice, totalL})
         else res.json({err:0, totalData:docs})
       } else res.json({err:0, msg:"无匹配结果"})
+    } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
+  })()
+})
+
+/* 删除激活码 */
+rt.get("/delCode", (req, res) => {
+  let {mode, del} = req.query
+  mode = parseInt(mode)
+  ;(async ()=>{
+    try {
+      if (mode) {
+        let genDate = new Date(del)
+        if (genDate.toString() !== "Invalid Date") {
+          let q = await AuthCode.deleteMany({genDate})
+          if (q.deletedCount) res.json({err:0, msg:`共删除${q.deletedCount}条激活码`})
+          else res.json({err:1, msg: "无匹配激活码"})
+        } else res.json({err:2, msg: "操作失败, 无效日期格式"})
+      } else {
+        let q = await AuthCode.deleteOne({code: del})
+        if (q.deletedCount) res.json({err:0, msg:`删除成功`})
+        else res.json({err:1, msg: "无匹配激活码"})
+      }
     } catch(e){console.log(e);res.json({err:5, msg:"database error"})}
   })()
 })

@@ -1,4 +1,4 @@
-#genModal i {
+i {
   color: red;
 }
 #user {
@@ -15,4 +15,7 @@
 }
 #navigator {
   height: 70px;
+}
+h5 {
+  cursor: pointer;
 }
