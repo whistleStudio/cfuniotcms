@@ -35,8 +35,8 @@
       }
     },
     props: {
+      colHead: Array, //[{k:"code", tag: "激活码", ?map: {0:"",1:"",...}},...] k要和请求来的数据tbList的k相同, 可选map决定是否有映射
       tbData: Array, //[{name: "wsh",...}]
-      colHead: Array, //[{k:"code", tag: "激活码"},...] k要和请求来的数据tbList的k相同
       actPage: {type: Number, default: 0},
       perPageCount: {type: Number, default: 20}
     },

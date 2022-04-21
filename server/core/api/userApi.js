@@ -74,24 +74,24 @@ rt.post("/batchGen", (req, res) => {
 
 /* 获取数据列表总长 */
 rt.post("/getPageContent", (req, res) => {
-  let keys = ["name", "authority", "school"], f1 = [{name: /.+/}], f2 = [{mail: /.+/}]
-  let flag = 1
+  let keys = ["name", "mail", "authority", "school"], f1 = [{name: /.+/}], f2 = [{mail: /.+/}]
+  let flag = 1, filter = {}
   // 防止某个字段没有
-  keys.forEach(e => {
-    if (req.body[e]) {
-      if (flag) {f1=[]; flag=0}
-      f1.push({[e]: RegExp(req.body[e])})
+  keys.forEach(k => {
+    let v = req.body[k]
+    if (v) {
+      switch (k) {
+        case "authority":
+          filter[k] = parseInt(v);break;
+        case "mail":
+          filter.$or = [{mail: RegExp(v)}, {pmail: RegExp(v)}];break
+        default:
+          filter[k] = RegExp(v);break;
+      }
     }
   })
-  let {mail, page} = req.body
-  // mail匹配mail或pmail字段
-  if (mail) f2 = [{mail: RegExp(mail)}, {pmail: RegExp(mail)}]
-  let filter = {
-    $and: [
-      ...f1,
-      {$or: f2}
-    ]
-  }
+  let {page} = req.body
+
   ;(async ()=>{
     try {
       if (page) {

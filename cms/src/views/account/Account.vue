@@ -2,16 +2,7 @@
 <template>
   <div id="account">
     <div id="search">
-      <div v-for="(v, i) in keyword" :key="i" 
-      class="mb-3 search-box">
-      <label for="formGroupExampleInput" class="form-label">{{v.k}}</label>
-      <input :placeholder="'请输入'+v.k" v-model="v.v"
-      type="text" class="form-control" id="formGroupExampleInput">
-      </div> 
-      <div class="search-btn">
-        <button @click="searchContent({reset:1})" class="btn btn-primary">重置</button>
-        <button @click="searchContent" class="btn btn-primary">查询</button>
-      </div>     
+      <search-bar :keywords="keywords" @reset-search="pageSearch" @keyword-search="pageSearch" />
     </div>
     <div id="batch">
       <button @click="batchGenClick" 
@@ -24,35 +15,10 @@
       ><span></span></a>
     </div>
     <div id="content">
-      <div id="show">
-        <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-        <th scope="col">#</th>
-        <th scope="col">用户名</th>
-        <th scope="col">用户类型</th>
-        <th scope="col">用户邮箱</th>
-        <th scope="col">父级邮箱</th>
-        <th scope="col">等级</th>
-        <th scope="col">学校</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(v, i) in dataList" :key="i">
-        <th scope="row">{{actPage*20+i+1}}</th>
-        <td>{{v.name}}</td>
-        <td>{{roleMap[v.role]}}</td>
-        <td>{{v.mail}}</td>
-        <td>{{v.pmail}}</td>
-        <td>{{v.authority}}</td>
-        <td>{{v.school}}</td>
-        </tr>
-        </tbody>
-        </table>        
-      </div>
-      <div id="navigator">
-        <page-navigator :totalItemsL="totalL" :resetState="resetSta" @pageChange="getPageContent" />
-      </div>
+      <search-list-show :colHead="colHead" :tbData="dataList" :actPage="actPage" :perPageCount="20" />
+    </div>
+    <div id="navigator">
+      <page-navigator :totalItemsL="totalL" :resetState="isReset" @pageChange="getPageContent" />
     </div>
     <!-- genModal -->
     <div class="modal fade" id="genModal" tabindex="-1" aria-labelledby="genModalLabel" aria-hidden="true">
@@ -67,7 +33,7 @@
         class="mb-3">
           <label :for="'genGroupInput'+i" class="form-label"><i v-if="i<3">* </i>{{v.k}}</label>
           <input :id="'genGroupInput'+i" :placeholder="v.ph" v-model.trim="v.v" :class="{'is-valid': v.ok==1, 'is-invalid': v.ok==0}"
-          @focus="genIpFocus(i)" @blur="genIpBlur(i, v.v)" @click="genIpClick(i)"
+          @focus="genIpFocus(i)" @blur="genIpBlur(i, v.v)"
           ref="genIp" type="text" class="form-control" >
           <div v-if="i<3" 
           class="invalid-feedback">{{v.hint}}</div>
@@ -101,7 +67,7 @@
       </div>
     </div>
     <!-- deleteModal -->
-      <div class="modal" id="delModal" tabindex="-1" aria-labelledby="delModalLabel" aria-hidden="true">
+    <div class="modal" id="delModal" tabindex="-1" aria-labelledby="delModalLabel" aria-hidden="true">
       <div class="modal-dialog">
       <div class="modal-content">
       <div class="modal-header">
@@ -139,24 +105,38 @@
       </div>
       </div>
       </div>
-      </div>
+    </div>
 
   </div>
 </template>
 
 <script>
 const PageNavigator = ()=>import("components/common/pageNavigator/PageNavigator")
+const SearchBar = ()=>import("components/common/searchBar/SearchBar")
+const SearchListShow = ()=>import("components/common/searchListShow/SearchListShow")
 import {roleMap} from "./dataMap.json"
 import genWorkbook from "utils/genWorkbookAc"
 
 export default {
   data () {
     return {
-      keyword: [
-        {k: "用户名", v: ""},
-        {k: "邮箱", v: ""},
-        {k: "等级", v: ""},
-        {k: "学校", v: ""}
+      roleMap,
+      totalL: 0, actPage: 0, isSearch: 0, isReset: 0, delMode: 0,
+      curRole: sessionStorage.getItem("role"),
+      dataList: [], totalData: [], 
+      keywords: [
+        {type:"text", k:"name", tag: "用户名", v: ""},
+        {type:"text", k:"mail", tag: "邮箱", v: ""},
+        {type:"text", k:"auth", tag: "等级", v: ""},
+        {type:"text", k:"school", tag: "学校", v: ""}
+      ],
+      colHead: [
+        {k: "name", tag: "用户名"},
+        {k: "role", tag: "用户类型", map: roleMap},
+        {k: "mail", tag: "用户邮箱"},
+        {k: "pmail", tag: "父级邮箱"},
+        {k: "authority", tag: "等级"},
+        {k: "school", tag: "学校"},
       ],
       genModalInfo: [
         {k: "父级邮箱", v: "", ph: "请填入邮箱", hint: "糟糕, 这好像不是一个邮箱", ok:-1},
@@ -164,10 +144,6 @@ export default {
         {k: "用户名前缀", v: "", ph: "6-14个字符, 可使用数字、字母、下划线", hint: "用户名不合法", ok:-1},
         {k: "学校", v: "", ph: "默认创趣学院", ok:-1}
       ],
-      dataList: [],
-      totalData: [],
-      roleMap,
-      totalL: 0, actPage: 0, resetSta: 0,
       excelInfo: {link: "", name: ""},
       sheetCol: [
         {header: '用户名', key: 'name', width: '25'},
@@ -175,8 +151,6 @@ export default {
         {header: '用户邮箱', key: 'mail', width: '30'},
         {header: '等级', key: 'authority', width: '5'},        
       ],
-      curRole: sessionStorage.getItem("role"),
-      delMode: 0,
       delIpInfo: [
         {tag: "用户名或用户邮箱", k: "nameormail", v:"", ph:"请输入用户名或用户邮箱"},
         {tag: "父级邮箱", k: "pmail", v:"", ph:"name@example.com"}
@@ -189,7 +163,7 @@ export default {
     }
   },
   components: {
-    'page-navigator': PageNavigator,
+    PageNavigator,SearchBar, SearchListShow,
   },
   methods: {
     /* batch gen btn reset */
@@ -201,6 +175,7 @@ export default {
     },
     /* input验证三连 */
     genIpFocus (i) {
+      this.genModalInfo[i].ok = -1
       document.onkeydown = (ev)=>{
         if (ev.key === "Enter") {
           this.$refs.genIp[i].blur()
@@ -248,9 +223,6 @@ export default {
       }))
     },
     /* genModal 确认提交信息 */
-    genIpClick (i) {
-      this.genModalInfo[i].ok = -1
-    },
     genCheckClick () {
       let pmail = this.genModalInfo[0].v, num = this.genModalInfo[1].v
       let name = this.genModalInfo[2].v
@@ -268,11 +240,12 @@ export default {
       .then(res => res.json()
       .then(data => {
         alert(data.msg)
-        if(!data.err) this.$router.push("/admin/account")
+        if(!data.err) this.pageSearch()
       }))
     },
     /* 更新页面内容 */
-    getPageContent (page=1, mode=0) {
+    getPageContent (page=1) {
+      let mode = this.isSearch
       fetch("/api/user/getPageContent", {
         method: "POST",
         headers: {
@@ -280,10 +253,10 @@ export default {
         },
         body: JSON.stringify({
           page,
-          name: mode ? this.keyword[0].v:"",
-          mail: mode ? this.keyword[1].v:"",
-          authority: mode ? this.keyword[2].v:"",
-          school: mode ? this.keyword[3].v:""
+          name: mode ? this.keywords[0].v:"",
+          mail: mode ? this.keywords[1].v:"",
+          authority: mode ? this.keywords[2].v:"",
+          school: mode ? this.keywords[3].v:""
         })
       })
       .then(res => res.json()
@@ -317,13 +290,19 @@ export default {
       })()
     },
     /* 页面搜索0与重置1 */
-    searchContent ({reset=0}) {
-      this.resetSta = 1
-      if (reset) {this.keyword.forEach(e => e.v="")}
-      this.getPageContent(1, 1)
+    pageSearch (pl) {
+      if (pl) {
+        this.isSearch = 1
+        this.keywords.forEach((e, i) => {
+          e.v = pl[i].v
+        })
+      } else this.keywords.forEach(e => e.v="")
+      this.getPageContent()
+      this.isReset = 1
       // 立即执行，watch监控不到
-      setTimeout(()=>{this.resetSta=0}, 50)
+      setTimeout(()=>{this.isReset=0}, 50) 
     },
+
     /* delModal */
     delIpChange () {
       this.delIpInfo.forEach(e => e.v="")
@@ -339,7 +318,7 @@ export default {
       .then(data => {
         alert(data.msg)
         if (!data.err) {
-          this.searchContent({})
+          this.pageSearch()
           document.querySelector("#delModal .btn-close").click()
         }
       }))
@@ -352,9 +331,6 @@ export default {
       }
     },    
 
-  },
-  created () {
-    // this.getPageContent()
   },
   mounted () {
     this.getPageContent()

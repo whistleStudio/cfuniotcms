@@ -115,7 +115,9 @@
     color: var(--rMainColor);
   }
   .menuIcf {
+    display: inline-block;
     margin-right: 0.5rem;
+    width: 1.2rem;
   }
   #main {
     float: right;

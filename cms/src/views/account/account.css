@@ -1,3 +1,6 @@
+i {
+  color: red;
+}
 input::placeholder {
   color: rgb(200, 200, 200);
 }
@@ -6,9 +9,7 @@ input::placeholder {
   box-sizing: border-box;
 }
 #search {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  width: 100%;
 }
 .search-box {
   width: 21%;
@@ -39,18 +40,12 @@ input::placeholder {
 }
 #content {
   width: 100%;
-  height: calc(100% - 80px - 40px - 2.4rem);
+  height: calc(100% - 40px - 2.4rem - 80px - 70px);
+  overflow-y: auto;
   /* background-color: gainsboro; */
 }
-i {
-  color: red;
-}
-#show {
-  width: 100%;
-  height: calc(100% - 70px);
-  /* background-color: orange; */
-  overflow-y: auto;
-}
+
+
 #navigator {
   width: 100%;
   height: 70px;
