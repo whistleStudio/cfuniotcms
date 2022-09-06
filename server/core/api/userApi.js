@@ -35,8 +35,8 @@ rt.post("/batchGen", (req, res) => {
       let teacher = await User.findOne({mail: pmail})
       if (!teacher) {
         let pwd = pmail.split("@")[0]
-        await User.create({name: name+"0", role: 2, pwd, mail: pmail, school})
-        await Device.create({user: pmail, name:"创趣小屋", did:1})
+        await User.create({name: name+"0", role: 2, pwd, mail: pmail, school, regDate:new Date(), authDate:new Date()})
+        await Device.create({user: pmail, name:"创趣小屋", did:1, regDate:new Date()})
       } 
       else if (teacher.role===1) await User.updateOne({mail: pmail}, {role: 2})
       else if (!teacher.role) throw "err1"
@@ -44,6 +44,7 @@ rt.post("/batchGen", (req, res) => {
       let timeStamp = new Date().getTime()
       let val = timeStamp+pmail
       let mail
+      let stuRegDate = new Date(), stuAuthDate = new Date()
       for (let i=1; i<=num; i++) {
         let createOK = 0, safeCount = 0
         val += i
@@ -54,8 +55,8 @@ rt.post("/batchGen", (req, res) => {
           // 查重合格，创建；否则重新生成
           if (!doc) {
             createOK = 1
-            await User.create({name: name+i, role: 0, pwd: "12345678", mail, pmail, school})
-            await Device.create({user:mail, name:"创趣小屋", did:1})
+            await User.create({name: name+i, role: 0, pwd: "12345678", mail, pmail, school, regDate:stuRegDate, authDate:stuAuthDate})
+            await Device.create({user:mail, name:"创趣小屋", did:1, regDate:stuRegDate})
           } else {
             safeCount ++
             timeStamp = new Date().getTime()
@@ -204,8 +205,8 @@ rt.post("/addAdmin", (req, res) => {
         let doc = await User.findOne({name: rdName})
         if (!doc) {
           flag = 0
-          await User.create({pwd, mail, role, name:rdName})
-          await Device.create({user: mail, name:"创趣小屋", did:1})
+          await User.create({pwd, mail, role, name:rdName, regDate:new Date(), authDate:new Date()})
+          await Device.create({user: mail, name:"创趣小屋", did:1, regDate:new Date()})
           res.json({err:0, msg:`新增管理员, 用户名:${rdName} 邮箱:${mail}`})
         }
       }
@@ -258,7 +259,7 @@ rt.get("/delAccount", (req, res) => {
         let filter = {
           $or: [{name: del},{mail:del}]
         }
-        let doc = User.findOne(filter)
+        let doc = await User.findOne(filter)
         if (doc) {
           if (doc.role<2) {
             await User.deleteOne(filter)
