@@ -7,11 +7,9 @@
     </div>
     <div id="batch">
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#genModal">批量创建激活码</button>
-      <button @click="getCodeList(0)" 
-      class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#delModal">导出激活码</button>
-      <button v-if="curRole>3" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delModal">删除激活码</button>
-      <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"
-      ><span></span></a>
+      <button @click="getCodeList(0)" class="btn btn-outline-success">导出激活码</button>
+      <button v-if="curRole>3" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delModal" @click="btnTest">删除激活码</button>
+      <a :href="excelInfo.link"  ref="excelA" :download="excelInfo.name"><span></span></a>
     </div>
     <div id="searchListShow">
       <search-list-show  :colHead="keywords" :tbData="tbData" :actPage="actPage" />
@@ -146,6 +144,7 @@ export default {
     "page-navigator": PageNavigator
   },
   methods: {
+    btnTest () {console.log("btntest")},
     // 内容获取 page=0,导出表格
     getCodeList (page=1) {
       let mode = this.isSearch
@@ -254,6 +253,7 @@ export default {
         const buf = await workbook.xlsx.writeBuffer()
         this.excelInfo.link = URL.createObjectURL(new Blob([buf.buffer]))
         this.excelInfo.name = `${dataName}.xlsx`
+        console.log(this.$refs.excelA)
         setTimeout(()=>{this.$refs.excelA.click()}, 100)
       })()
     },

@@ -8,9 +8,10 @@ rt.post("/genModalSubmit", (req, res)=>{
   let {auth, authExp, count} = req.body
   ;(async ()=>{
     try {
+      let genDate = new Date()
       for (let v of Array(count)) {
         let code = genCode()
-        await AuthCode.create({code, auth, authExp, genDate:new Date()})
+        await AuthCode.create({code, auth, authExp, genDate})
       }
       console.log(new Date(), ` ${count} code created`)
       res.json({err:0, msg:"激活码生成成功"})
